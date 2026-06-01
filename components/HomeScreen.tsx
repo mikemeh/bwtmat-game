@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useGame } from '@/lib/game-context';
 import HowToPlayModal from './HowToPlayModal';
 
@@ -92,8 +93,15 @@ export default function HomeScreen() {
               onClick={() => dispatch({ type: 'GO_SETUP' })}
               className="btn-shimmer w-full py-4 rounded-2xl text-black font-black text-xl transition-all active:scale-95 shadow-2xl glow-amber"
             >
-              🎮 Start Game
+              🎮 Local Game
             </button>
+            <Link
+              href="/online"
+              className="glass flex items-center justify-center w-full py-4 rounded-2xl text-white font-black text-lg transition-all active:scale-95 border border-white/20 hover:border-white/30"
+              style={{ background: 'rgba(255,255,255,0.07)' }}
+            >
+              🌐 Online Multiplayer
+            </Link>
             <button
               onClick={() => setShowRules(true)}
               className="glass w-full py-3 rounded-2xl text-white font-bold text-base transition-all hover:border-white/25 active:scale-95 border border-white/15"
