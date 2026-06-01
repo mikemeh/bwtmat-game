@@ -4,6 +4,7 @@ import { useGame } from '@/lib/game-context';
 import { MEDAL, ORDINAL } from '@/lib/seeds';
 import SeedCard from './SeedCard';
 import GameHeader from './GameHeader';
+import ZoneBreakdown from './ZoneBreakdown';
 
 const POS_STYLE = [
   { bg: 'linear-gradient(135deg,#d97706,#92400e)', glow: '0 0 30px rgba(245,158,11,0.40)', text: '#fff' },
@@ -92,9 +93,10 @@ export default function RoundResultsScreen() {
                   <span className="text-white font-bold text-sm">{player.name}</span>
                   <span className="text-amber-300 font-black text-sm">= {correct}</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 mb-3">
                   {seeds.map(seed => <SeedCard key={seed.id} seed={seed} revealed showValue />)}
                 </div>
+                <ZoneBreakdown seeds={seeds} />
               </div>
             );
           })}

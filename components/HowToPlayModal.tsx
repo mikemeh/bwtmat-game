@@ -36,16 +36,16 @@ export default function HowToPlayModal({ onClose }: HowToPlayModalProps) {
             <h3 className="text-amber-400 font-bold uppercase tracking-wide mb-2">Color Zones</h3>
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-7 rounded-lg bg-red-600 shrink-0" />
-                <div><span className="text-white font-semibold">Red — No Score Zone:</span> Any number = 0</div>
+                <div className="w-10 h-7 rounded-lg shrink-0 flex items-center justify-center text-white text-xs font-black" style={{ background: 'linear-gradient(135deg,#ef4444,#991b1b)' }}>✕</div>
+                <div><span className="text-white font-semibold">Red — No Score Zone:</span> Any number = 0 (orange X on board)</div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-7 rounded-lg bg-blue-600 shrink-0" />
+                <div className="w-10 h-7 rounded-lg shrink-0 flex items-center justify-center text-white text-xs font-black" style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)' }}>●</div>
                 <div><span className="text-white font-semibold">Blue — Comfort Zone:</span> Face value of the number</div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-7 rounded-lg bg-green-600 shrink-0" />
-                <div><span className="text-white font-semibold">Green — Banger Zone:</span> Double the value</div>
+                <div className="w-10 h-7 rounded-lg shrink-0 flex items-center justify-center text-white text-xs font-black" style={{ background: 'linear-gradient(135deg,#0f766e,#134e4a)' }}>★</div>
+                <div><span className="text-white font-semibold">Teal — Banger Zone:</span> Double the value</div>
               </div>
             </div>
           </section>

@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { useGame } from '@/lib/game-context';
 import { LEVEL_NAMES } from '@/lib/seeds';
 import GameHeader from './GameHeader';
+import GameBoard from './GameBoard';
 
 export default function DrawScreen() {
   const { state, dispatch } = useGame();
   const { players, config, currentRound, roundSeeds } = state;
+  const [showBoard, setShowBoard] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col p-5">
@@ -24,61 +27,89 @@ export default function DrawScreen() {
         <p className="text-white/30 text-xs mt-1">{config.seedsPerRound} seeds · {config.timeLimit}s timer</p>
       </div>
 
-      {/* Instruction banner */}
-      <div className="glass border border-amber-500/20 rounded-2xl p-4 text-center mb-5"
-        style={{ background: 'rgba(245,158,11,0.06)' }}>
-        <p className="text-2xl mb-1">✊</p>
-        <p className="text-amber-300 font-bold text-sm">Seeds are dealt! Keep your fist closed.</p>
-        <p className="text-white/40 text-xs mt-1">
-          Tap <strong className="text-amber-400">Reveal &amp; Start</strong> when everyone is ready.
-        </p>
+      {/* Toggle: board view or player seeds */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setShowBoard(false)}
+          className="flex-1 py-2 rounded-xl text-sm font-black transition-all"
+          style={{
+            background: !showBoard ? 'rgba(245,158,11,0.20)' : 'rgba(255,255,255,0.05)',
+            border: !showBoard ? '1px solid rgba(245,158,11,0.50)' : '1px solid rgba(255,255,255,0.08)',
+            color: !showBoard ? '#fcd34d' : '#ffffff60',
+          }}>
+          ✊ Players
+        </button>
+        <button
+          onClick={() => setShowBoard(true)}
+          className="flex-1 py-2 rounded-xl text-sm font-black transition-all"
+          style={{
+            background: showBoard ? 'rgba(245,158,11,0.20)' : 'rgba(255,255,255,0.05)',
+            border: showBoard ? '1px solid rgba(245,158,11,0.50)' : '1px solid rgba(255,255,255,0.08)',
+            color: showBoard ? '#fcd34d' : '#ffffff60',
+          }}>
+          🎯 Game Board
+        </button>
       </div>
 
-      {/* Players */}
-      <div className="flex-1 space-y-3 overflow-y-auto">
-        {players.map((player, pi) => {
-          const seeds = roundSeeds[player.id] ?? [];
-          const initials = player.name.slice(0, 2).toUpperCase();
-          const colors = ['#7c3aed','#0891b2','#be185d','#065f46','#92400e'];
-          const avatarColor = colors[pi % colors.length];
+      {showBoard ? (
+        /* Visual game board */
+        <div className="flex-1 overflow-y-auto">
+          <GameBoard />
+        </div>
+      ) : (
+        /* Players with hidden seeds */
+        <div className="flex-1 space-y-3 overflow-y-auto">
+          {/* Instruction banner */}
+          <div className="glass border border-amber-500/20 rounded-2xl p-3 text-center"
+            style={{ background: 'rgba(245,158,11,0.06)' }}>
+            <p className="text-2xl mb-1">✊</p>
+            <p className="text-amber-300 font-bold text-sm">Seeds dealt! Hold your fist closed.</p>
+            <p className="text-white/40 text-xs mt-1">
+              Tap <strong className="text-amber-400">Reveal &amp; Start</strong> when everyone is ready.
+            </p>
+          </div>
 
-          return (
-            <div key={player.id}
-              className="glass rounded-2xl p-4 flex items-center gap-4"
-              style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-              {/* Avatar */}
-              <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white"
-                style={{ background: avatarColor, boxShadow: `0 0 16px ${avatarColor}55` }}>
-                {initials}
-              </div>
-              <div className="flex-1">
-                <p className="text-white font-bold text-sm mb-2">{player.name}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {seeds.map((_, i) => (
-                    <div key={i}
-                      className="rounded-xl flex items-center justify-center"
-                      style={{
-                        width: 44, height: 56,
-                        background: 'linear-gradient(145deg,#1e293b,#0f172a)',
-                        border: '2px solid rgba(255,255,255,0.08)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                      }}>
-                      <span style={{ fontSize: 18, color: 'rgba(255,255,255,0.20)', fontWeight: 900 }}>?</span>
-                    </div>
-                  ))}
+          {players.map((player, pi) => {
+            const seeds = roundSeeds[player.id] ?? [];
+            const initials = player.name.slice(0, 2).toUpperCase();
+            const colors = ['#7c3aed','#0891b2','#be185d','#065f46','#92400e'];
+            const avatarColor = colors[pi % colors.length];
+            return (
+              <div key={player.id}
+                className="glass rounded-2xl p-4 flex items-center gap-4"
+                style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white"
+                  style={{ background: avatarColor, boxShadow: `0 0 16px ${avatarColor}55` }}>
+                  {initials}
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-bold text-sm mb-2">{player.name}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {seeds.map((_, i) => (
+                      <div key={i}
+                        className="rounded-xl flex items-center justify-center"
+                        style={{
+                          width: 44, height: 56,
+                          background: 'linear-gradient(145deg,#1e293b,#0f172a)',
+                          border: '2px solid rgba(255,255,255,0.08)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                        }}>
+                        <span style={{ fontSize: 18, color: 'rgba(255,255,255,0.20)', fontWeight: 900 }}>?</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Reveal CTA */}
       <div className="mt-5 space-y-2">
         <button
           onClick={() => dispatch({ type: 'BEGIN_REVEAL' })}
-          className="btn-shimmer w-full py-5 rounded-2xl text-black font-black text-xl transition-all active:scale-95 shadow-2xl glow-amber"
-        >
+          className="btn-shimmer w-full py-5 rounded-2xl text-black font-black text-xl transition-all active:scale-95 shadow-2xl glow-amber">
           ▶ Reveal &amp; Start Timer
         </button>
         <p className="text-center text-white/25 text-xs">All seeds flip simultaneously</p>

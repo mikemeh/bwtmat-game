@@ -6,6 +6,7 @@ import { calculateTotal, LEVEL_NAMES, ORDINAL } from '@/lib/seeds';
 import SeedCard from './SeedCard';
 import CountdownTimer from './CountdownTimer';
 import GameHeader from './GameHeader';
+import ZoneBreakdown from './ZoneBreakdown';
 
 const AVATAR_COLORS = ['#7c3aed','#0891b2','#be185d','#065f46','#92400e'];
 const POS_BADGE = [
@@ -166,9 +167,12 @@ export default function RevealScreen() {
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-green-400 font-black text-sm">✓ Correct!</span>
-                  <span className="text-white/40 text-xs">Total = {calculateTotal(seeds)}</span>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-400 font-black text-sm">✓ Correct!</span>
+                    <span className="text-white/40 text-xs">Total = {calculateTotal(seeds)}</span>
+                  </div>
+                  <ZoneBreakdown seeds={seeds} />
                 </div>
               )}
             </div>
