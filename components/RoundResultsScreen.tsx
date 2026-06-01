@@ -2,15 +2,15 @@
 
 import { useGame } from '@/lib/game-context';
 import { MEDAL, ORDINAL } from '@/lib/seeds';
-import GameHeader from './GameHeader';
 import SeedCard from './SeedCard';
+import GameHeader from './GameHeader';
 
-const POS_COLORS = [
-  'text-amber-400',
-  'text-slate-300',
-  'text-amber-600',
-  'text-slate-400',
-  'text-slate-500',
+const POS_STYLE = [
+  { bg: 'linear-gradient(135deg,#d97706,#92400e)', glow: '0 0 30px rgba(245,158,11,0.40)', text: '#fff' },
+  { bg: 'linear-gradient(135deg,#475569,#1e293b)', glow: '0 0 20px rgba(148,163,184,0.20)', text: '#e2e8f0' },
+  { bg: 'linear-gradient(135deg,#92400e,#451a03)', glow: '0 0 20px rgba(146,64,14,0.30)',   text: '#fcd34d' },
+  { bg: 'rgba(30,41,59,0.6)',  glow: 'none', text: '#94a3b8' },
+  { bg: 'rgba(15,23,42,0.6)',  glow: 'none', text: '#64748b' },
 ];
 
 export default function RoundResultsScreen() {
@@ -18,72 +18,82 @@ export default function RoundResultsScreen() {
   const { players, currentRound, config, roundResults, currentSubmissions } = state;
 
   const isLastRound = currentRound >= config.totalRounds;
-  const lastResult = roundResults[roundResults.length - 1];
+  const lastResult  = roundResults[roundResults.length - 1];
 
-  const sortedSubmissions = [...currentSubmissions].sort((a, b) => {
+  const sorted = [...currentSubmissions].sort((a, b) => {
     if (a.isCorrect && !b.isCorrect) return -1;
     if (!a.isCorrect && b.isCorrect) return 1;
     return a.position - b.position;
   });
 
   const getPlayer = (id: string) => players.find(p => p.id === id);
+  const winner = sorted[0]?.isCorrect ? getPlayer(sorted[0].playerId) : null;
+
+  const overallRanked = [...players].sort((a, b) =>
+    b.firstPlaces - a.firstPlaces || b.secondPlaces - a.secondPlaces
+  );
 
   return (
     <div className="min-h-screen flex flex-col p-5 overflow-y-auto">
       <GameHeader />
-      {/* Header */}
-      <div className="text-center mb-6">
-        <p className="text-slate-400 text-xs uppercase tracking-widest font-medium">Round {currentRound} Results</p>
-        <h2 className="text-2xl font-black text-white mt-1">
-          {sortedSubmissions[0]?.isCorrect
-            ? `${getPlayer(sortedSubmissions[0].playerId)?.name ?? ''} wins the round!`
-            : 'Round Over'}
-        </h2>
+
+      {/* Winner announcement */}
+      <div className="text-center mb-5">
+        {winner ? (
+          <>
+            <div className="text-4xl mb-2">🏅</div>
+            <h2 className="text-2xl font-black text-white">
+              <span className="text-amber-400">{winner.name}</span> wins round {currentRound}!
+            </h2>
+          </>
+        ) : (
+          <h2 className="text-2xl font-black text-white/60">Round {currentRound} Over</h2>
+        )}
       </div>
 
       {/* Round rankings */}
-      <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4 mb-5 space-y-2">
-        <h3 className="text-slate-400 text-xs uppercase tracking-wide font-semibold mb-3">Round Standings</h3>
-        {sortedSubmissions.map((sub, i) => {
+      <div className="glass rounded-2xl p-4 mb-4 space-y-2"
+        style={{ border: '1px solid rgba(255,255,255,0.09)' }}>
+        <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3">Round Positions</p>
+        {sorted.map((sub, i) => {
           const player = getPlayer(sub.playerId);
           if (!player) return null;
-          const pos = sub.isCorrect ? sub.position : null;
+          const style = POS_STYLE[i] ?? POS_STYLE[4];
           return (
-            <div key={sub.playerId} className={`flex items-center gap-3 p-3 rounded-xl ${i === 0 && sub.isCorrect ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-slate-900/40'}`}>
-              <span className={`text-xl font-black w-8 ${POS_COLORS[i] ?? 'text-slate-500'}`}>
-                {pos !== null ? MEDAL[pos - 1] ?? `${pos}` : '—'}
-              </span>
-              <span className="text-white font-semibold flex-1">{player.name}</span>
+            <div key={sub.playerId}
+              className="flex items-center gap-3 p-3 rounded-xl"
+              style={{ background: style.bg, boxShadow: style.glow }}>
+              <span className="text-xl w-8 font-black">{sub.isCorrect ? (MEDAL[sub.position - 1] ?? `${sub.position}`) : '—'}</span>
+              <span className="font-black flex-1" style={{ color: style.text }}>{player.name}</span>
               {sub.isCorrect ? (
-                <span className="text-green-400 text-sm font-bold">
-                  = {lastResult?.correctAnswers[player.id] ?? '?'}
-                  &nbsp;✓
+                <span className="text-green-300 text-sm font-bold">
+                  = {lastResult?.correctAnswers[player.id] ?? '?'} ✓
                 </span>
               ) : (
-                <span className="text-red-400 text-sm">Did not submit</span>
+                <span className="text-red-400/70 text-xs">No answer</span>
               )}
             </div>
           );
         })}
       </div>
 
-      {/* Correct answers breakdown */}
+      {/* Seed breakdown */}
       {lastResult && (
-        <div className="space-y-3 mb-6">
-          <h3 className="text-slate-400 text-xs uppercase tracking-wide font-semibold">Seeds &amp; Correct Answers</h3>
+        <div className="space-y-2 mb-4">
+          <p className="text-white/40 text-xs font-bold uppercase tracking-widest">Seeds &amp; Answers</p>
           {players.map(player => {
-            const seeds = lastResult.seeds[player.id] ?? [];
+            const seeds   = lastResult.seeds[player.id] ?? [];
             const correct = lastResult.correctAnswers[player.id] ?? 0;
             return (
-              <div key={player.id} className="bg-slate-800/40 border border-slate-700 rounded-2xl p-3">
+              <div key={player.id}
+                className="glass rounded-2xl p-3"
+                style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white font-semibold text-sm">{player.name}</span>
-                  <span className="text-amber-300 font-bold text-sm">Total: {correct}</span>
+                  <span className="text-white font-bold text-sm">{player.name}</span>
+                  <span className="text-amber-300 font-black text-sm">= {correct}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {seeds.map(seed => (
-                    <SeedCard key={seed.id} seed={seed} revealed showValue />
-                  ))}
+                  {seeds.map(seed => <SeedCard key={seed.id} seed={seed} revealed showValue />)}
                 </div>
               </div>
             );
@@ -92,30 +102,34 @@ export default function RoundResultsScreen() {
       )}
 
       {/* Overall standings */}
-      <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4 mb-6">
-        <h3 className="text-slate-400 text-xs uppercase tracking-wide font-semibold mb-3">Overall After {currentRound} Rounds</h3>
-        {[...players]
-          .sort((a, b) => b.firstPlaces - a.firstPlaces || b.secondPlaces - a.secondPlaces || b.thirdPlaces - a.thirdPlaces)
-          .map((player, i) => (
-            <div key={player.id} className="flex items-center gap-3 py-2 border-b border-slate-700/50 last:border-0">
-              <span className={`text-sm font-black w-6 ${POS_COLORS[i] ?? 'text-slate-500'}`}>{ORDINAL[i]}</span>
-              <span className="text-white font-medium flex-1">{player.name}</span>
-              <span className="text-slate-400 text-xs">
-                {player.firstPlaces > 0 && <span className="text-amber-400">★×{player.firstPlaces} </span>}
-                {player.secondPlaces > 0 && <span className="text-slate-300">✦×{player.secondPlaces} </span>}
-                {player.thirdPlaces > 0 && <span className="text-amber-600">◆×{player.thirdPlaces}</span>}
-                {player.firstPlaces === 0 && player.secondPlaces === 0 && player.thirdPlaces === 0 && '—'}
-              </span>
-            </div>
-          ))}
+      <div className="glass rounded-2xl p-4 mb-5"
+        style={{ border: '1px solid rgba(255,255,255,0.09)' }}>
+        <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3">
+          Overall · {currentRound} of {config.totalRounds} rounds
+        </p>
+        {overallRanked.map((player, i) => (
+          <div key={player.id}
+            className="flex items-center gap-3 py-2.5 border-b last:border-0"
+            style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+            <span className="text-sm font-black w-6" style={{ color: POS_STYLE[i]?.text ?? '#64748b' }}>
+              {ORDINAL[i]}
+            </span>
+            <span className="text-white font-semibold flex-1">{player.name}</span>
+            <span className="text-xs space-x-1">
+              {player.firstPlaces  > 0 && <span className="text-amber-400 font-bold">★×{player.firstPlaces}</span>}
+              {player.secondPlaces > 0 && <span className="text-slate-300 font-bold">✦×{player.secondPlaces}</span>}
+              {player.thirdPlaces  > 0 && <span className="text-amber-600 font-bold">◆×{player.thirdPlaces}</span>}
+              {!player.firstPlaces && !player.secondPlaces && !player.thirdPlaces && <span className="text-white/20">—</span>}
+            </span>
+          </div>
+        ))}
       </div>
 
-      {/* Action button */}
       <button
         onClick={() => dispatch({ type: 'NEXT_ROUND' })}
-        className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-extrabold text-xl transition-all shadow-lg shadow-amber-500/30"
+        className="btn-shimmer w-full py-4 rounded-2xl text-black font-black text-xl transition-all active:scale-95 shadow-2xl glow-amber"
       >
-        {isLastRound ? 'See Final Results' : `Next Round →`}
+        {isLastRound ? '🏆 See Final Results' : `Next Round →`}
       </button>
     </div>
   );

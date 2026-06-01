@@ -4,65 +4,108 @@ import { useState } from 'react';
 import { useGame } from '@/lib/game-context';
 import HowToPlayModal from './HowToPlayModal';
 
+const FLOATERS = [
+  { color: 'bg-red-500',   cls: 'float-1', top: '8%',  left: '5%',  rot: 15  },
+  { color: 'bg-green-500', cls: 'float-2', top: '20%', left: '88%', rot: -10 },
+  { color: 'bg-blue-500',  cls: 'float-3', top: '55%', left: '3%',  rot: 8   },
+  { color: 'bg-green-500', cls: 'float-4', top: '70%', left: '91%', rot: -15 },
+  { color: 'bg-red-500',   cls: 'float-5', top: '40%', left: '93%', rot: 20  },
+  { color: 'bg-blue-500',  cls: 'float-6', top: '82%', left: '7%',  rot: -8  },
+  { color: 'bg-green-500', cls: 'float-7', top: '15%', left: '50%', rot: 12  },
+  { color: 'bg-red-500',   cls: 'float-8', top: '88%', left: '55%', rot: -5  },
+];
+
 export default function HomeScreen() {
   const { dispatch } = useGame();
   const [showRules, setShowRules] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Full-screen background */}
+
+      {/* ── Background: logo image ── */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
         style={{ backgroundImage: "url('/logo.jpg')" }}
       />
-      {/* Dark overlay so text stays readable */}
-      <div className="absolute inset-0 bg-black/60" />
+      {/* gradient overlays for depth */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-black/85" />
+      <div className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(109,40,217,0.12) 0%, transparent 70%),' +
+            'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(245,158,11,0.10) 0%, transparent 70%)',
+        }}
+      />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6">
-        <div className="text-center space-y-8 max-w-sm w-full">
+      {/* ── Floating seed decorations ── */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {FLOATERS.map((f, i) => (
+          <div
+            key={i}
+            className={`absolute rounded-2xl ${f.color} ${f.cls}`}
+            style={{ width: 52, height: 68, top: f.top, left: f.left, transform: `rotate(${f.rot}deg)` }}
+          />
+        ))}
+      </div>
 
-          {/* Logo image — hero */}
-          <div className="flex justify-center">
+      {/* ── Main content ── */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-10">
+        <div className="w-full max-w-sm space-y-8 text-center">
+
+          {/* Logo hero */}
+          <div className="animate-pop" style={{ animationDelay: '0ms' }}>
             <img
               src="/logo.jpg"
               alt="BWTmat Game"
-              className="w-full max-w-xs rounded-2xl shadow-2xl"
-              style={{ filter: 'drop-shadow(0 0 32px rgba(251,191,36,0.5))' }}
+              className="w-full max-w-[300px] mx-auto rounded-3xl animate-logo-pulse"
+              style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}
             />
           </div>
 
           {/* Tagline */}
-          <p className="text-slate-300 text-sm leading-relaxed">
-            Fast-thinking · Number-crunching · Color-coded strategy
-          </p>
+          <div className="animate-pop" style={{ animationDelay: '80ms' }}>
+            <p className="text-white/60 text-sm tracking-wide">
+              Fast-thinking &nbsp;·&nbsp; Color-coded &nbsp;·&nbsp; Strategy
+            </p>
+          </div>
 
           {/* Feature pills */}
-          <div className="flex justify-center gap-2 flex-wrap">
-            {['1–5 Players', 'Ages 6+', '60–90 sec', '5 Levels'].map(f => (
-              <span key={f} className="bg-black/50 border border-yellow-500/40 text-yellow-200 text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
-                {f}
+          <div className="flex justify-center gap-2 flex-wrap animate-pop" style={{ animationDelay: '160ms' }}>
+            {[
+              { label: '1–5 Players', icon: '👥' },
+              { label: 'Ages 6+',     icon: '🎯' },
+              { label: '60–90 sec',   icon: '⚡' },
+              { label: '5 Levels',    icon: '🏆' },
+            ].map(({ label, icon }) => (
+              <span
+                key={label}
+                className="glass flex items-center gap-1 text-amber-200 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-500/25"
+              >
+                <span>{icon}</span> {label}
               </span>
             ))}
           </div>
 
           {/* Buttons */}
-          <div className="space-y-3">
+          <div className="space-y-3 animate-pop" style={{ animationDelay: '240ms' }}>
             <button
               onClick={() => dispatch({ type: 'GO_SETUP' })}
-              className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-extrabold text-xl transition-all shadow-xl shadow-amber-500/40"
+              className="btn-shimmer w-full py-4 rounded-2xl text-black font-black text-xl transition-all active:scale-95 shadow-2xl glow-amber"
             >
-              Start Game
+              🎮 Start Game
             </button>
             <button
               onClick={() => setShowRules(true)}
-              className="w-full py-3 rounded-2xl border border-white/30 hover:border-white/60 bg-black/30 backdrop-blur-sm text-white hover:text-white font-semibold text-base transition-all"
+              className="glass w-full py-3 rounded-2xl text-white font-bold text-base transition-all hover:border-white/25 active:scale-95 border border-white/15"
             >
               How to Play
             </button>
           </div>
 
-          <p className="text-white/30 text-xs">From the codes of Bomsy Wall Tennis</p>
+          {/* Footer */}
+          <p className="text-white/20 text-xs animate-pop" style={{ animationDelay: '320ms' }}>
+            From the codes of Bomsy Wall Tennis
+          </p>
         </div>
       </div>
 

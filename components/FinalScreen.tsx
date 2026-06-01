@@ -4,108 +4,129 @@ import { useGame } from '@/lib/game-context';
 import { MEDAL, LEVEL_NAMES } from '@/lib/seeds';
 import GameHeader from './GameHeader';
 
+const RANK_STYLE = [
+  { ring: '#f59e0b', bg: 'linear-gradient(135deg,rgba(245,158,11,0.18),rgba(120,53,15,0.10))', border: 'rgba(245,158,11,0.40)', glow: '0 0 40px rgba(245,158,11,0.30)' },
+  { ring: '#94a3b8', bg: 'linear-gradient(135deg,rgba(148,163,184,0.10),rgba(30,41,59,0.10))', border: 'rgba(148,163,184,0.25)', glow: 'none' },
+  { ring: '#b45309', bg: 'linear-gradient(135deg,rgba(180,83,9,0.12),rgba(69,26,3,0.08))',     border: 'rgba(180,83,9,0.30)',    glow: 'none' },
+  { ring: '#334155', bg: 'rgba(15,23,42,0.50)',  border: 'rgba(51,65,85,0.40)',  glow: 'none' },
+  { ring: '#1e293b', bg: 'rgba(9,15,30,0.50)',   border: 'rgba(30,41,59,0.40)',  glow: 'none' },
+];
+
 export default function FinalScreen() {
   const { state, dispatch } = useGame();
-  const { players, config, roundResults } = state;
+  const { players, config } = state;
 
   const ranked = [...players].sort((a, b) =>
     b.firstPlaces - a.firstPlaces || b.secondPlaces - a.secondPlaces || b.thirdPlaces - a.thirdPlaces
   );
 
   const champion = ranked[0];
-  const isTied = ranked.length > 1 && ranked[0].firstPlaces === ranked[1].firstPlaces
+  const isTied = ranked.length > 1
+    && ranked[0].firstPlaces  === ranked[1].firstPlaces
     && ranked[0].secondPlaces === ranked[1].secondPlaces;
 
   return (
     <div className="min-h-screen flex flex-col items-center p-5 overflow-y-auto">
-      <div className="w-full max-w-md space-y-6 py-6">
+      <div className="w-full max-w-md py-4 space-y-6">
         <GameHeader />
+
         {/* Champion banner */}
-        <div className="text-center space-y-3">
-          <div className="text-6xl">🏆</div>
+        <div className="text-center space-y-4">
+          <div style={{ fontSize: 64, lineHeight: 1 }}>🏆</div>
           <div>
-            <p className="text-slate-400 text-sm uppercase tracking-widest">Game Over</p>
+            <p className="text-white/40 text-xs font-bold uppercase tracking-[0.2em]">Game Over</p>
             <h1 className="text-3xl font-black text-white mt-1">
-              {isTied ? 'It\'s a Tie!' : 'BWTmat Champion'}
+              {isTied ? "It's a Tie!" : 'BWTmat Champion'}
             </h1>
           </div>
 
           {isTied ? (
             <div className="flex justify-center gap-3">
               {ranked.slice(0, 2).map(p => (
-                <div key={p.id} className="bg-amber-500/20 border border-amber-500/50 rounded-2xl px-5 py-3 text-center">
+                <div key={p.id}
+                  className="px-6 py-4 rounded-2xl text-center"
+                  style={{ background: RANK_STYLE[0].bg, border: `1px solid ${RANK_STYLE[0].border}`, boxShadow: RANK_STYLE[0].glow }}>
                   <p className="text-amber-300 font-black text-xl">{p.name}</p>
+                  <p className="text-amber-400/60 text-xs mt-1">{p.firstPlaces} first place{p.firstPlaces !== 1 ? 's' : ''}</p>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="bg-amber-500/20 border border-amber-500/40 rounded-2xl p-5 inline-block mx-auto">
-              <p className="text-amber-300 font-black text-3xl">{champion?.name}</p>
-              <p className="text-amber-400/70 text-sm mt-1">
-                {champion?.firstPlaces ?? 0} First {(champion?.firstPlaces ?? 0) === 1 ? 'Place' : 'Places'}
+            <div className="mx-auto inline-block rounded-2xl px-8 py-5 text-center animate-pop"
+              style={{
+                background: RANK_STYLE[0].bg,
+                border: `2px solid ${RANK_STYLE[0].border}`,
+                boxShadow: RANK_STYLE[0].glow,
+              }}>
+              <p className="text-4xl font-black text-amber-300 leading-none">{champion?.name}</p>
+              <p className="text-amber-400/60 text-sm mt-2 font-semibold">
+                {champion?.firstPlaces} First Place{champion?.firstPlaces !== 1 ? 's' : ''}
               </p>
             </div>
           )}
         </div>
 
         {/* Final standings */}
-        <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4">
-          <h3 className="text-slate-400 text-xs uppercase tracking-wide font-semibold mb-4">Final Standings</h3>
-          <div className="space-y-2">
-            {ranked.map((player, i) => (
-              <div
-                key={player.id}
-                className={`flex items-center gap-3 p-3 rounded-xl ${i === 0 ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-slate-900/40'}`}
-              >
+        <div className="glass rounded-2xl p-4 space-y-2"
+          style={{ border: '1px solid rgba(255,255,255,0.09)' }}>
+          <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3">Final Standings</p>
+          {ranked.map((player, i) => {
+            const s = RANK_STYLE[i] ?? RANK_STYLE[4];
+            return (
+              <div key={player.id}
+                className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: s.bg, border: `1px solid ${s.border}`, boxShadow: s.glow }}>
                 <span className="text-xl w-8">{MEDAL[i] ?? `${i + 1}`}</span>
                 <div className="flex-1">
-                  <p className="text-white font-semibold">{player.name}</p>
-                  <p className="text-slate-400 text-xs">
-                    {player.roundPositions.map(p => `${p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : `${p}th`}`).join(' ')}
+                  <p className="text-white font-black">{player.name}</p>
+                  <p className="text-white/30 text-xs mt-0.5">
+                    {player.roundPositions.map(p =>
+                      p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : `${p}th`
+                    ).join(' ')}
                   </p>
                 </div>
                 <div className="text-right text-xs space-y-0.5">
-                  {player.firstPlaces > 0 && <p className="text-amber-400 font-bold">★ {player.firstPlaces}×1st</p>}
-                  {player.secondPlaces > 0 && <p className="text-slate-300">✦ {player.secondPlaces}×2nd</p>}
-                  {player.thirdPlaces > 0 && <p className="text-amber-600">◆ {player.thirdPlaces}×3rd</p>}
-                  {player.firstPlaces === 0 && player.secondPlaces === 0 && player.thirdPlaces === 0 && (
-                    <p className="text-slate-500">No top 3</p>
+                  {player.firstPlaces  > 0 && <p className="text-amber-400 font-black">★ ×{player.firstPlaces}</p>}
+                  {player.secondPlaces > 0 && <p className="text-slate-300 font-bold">✦ ×{player.secondPlaces}</p>}
+                  {player.thirdPlaces  > 0 && <p className="text-amber-600 font-bold">◆ ×{player.thirdPlaces}</p>}
+                  {!player.firstPlaces && !player.secondPlaces && !player.thirdPlaces && (
+                    <p className="text-white/20">—</p>
                   )}
                 </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Summary */}
+        <div className="glass rounded-2xl p-4"
+          style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            {[
+              { val: config.totalRounds, label: 'Rounds' },
+              { val: `Lv ${config.level}`, label: LEVEL_NAMES[config.level] },
+              { val: config.seedsPerRound, label: 'Seeds/Round' },
+            ].map(({ val, label }) => (
+              <div key={label}>
+                <p className="text-white font-black text-lg">{val}</p>
+                <p className="text-white/30 text-xs">{label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Game summary */}
-        <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4 text-sm text-slate-400">
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div>
-              <p className="text-white font-bold text-lg">{config.totalRounds}</p>
-              <p className="text-xs">Rounds</p>
-            </div>
-            <div>
-              <p className="text-white font-bold text-lg">{LEVEL_NAMES[config.level].split(' ')[0]}</p>
-              <p className="text-xs">Level {config.level}</p>
-            </div>
-            <div>
-              <p className="text-white font-bold text-lg">{config.seedsPerRound}</p>
-              <p className="text-xs">Seeds/Round</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Play again buttons */}
+        {/* Actions */}
         <div className="space-y-3 pb-4">
           <button
             onClick={() => dispatch({ type: 'SETUP_GAME', players: players.map(p => p.name), config })}
-            className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-extrabold text-lg transition-all shadow-lg shadow-amber-500/30"
+            className="btn-shimmer w-full py-4 rounded-2xl text-black font-black text-lg transition-all active:scale-95 shadow-2xl glow-amber"
           >
-            Play Again (Same Setup)
+            🔄 Play Again
           </button>
           <button
             onClick={() => dispatch({ type: 'RESET' })}
-            className="w-full py-3 rounded-2xl border border-slate-600 text-slate-300 hover:text-white font-semibold text-base transition-all"
+            className="glass w-full py-3 rounded-2xl text-white font-bold text-base transition-all active:scale-95"
+            style={{ border: '1px solid rgba(255,255,255,0.1)' }}
           >
             New Game
           </button>

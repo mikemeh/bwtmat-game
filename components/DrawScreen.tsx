@@ -8,63 +8,80 @@ export default function DrawScreen() {
   const { state, dispatch } = useGame();
   const { players, config, currentRound, roundSeeds } = state;
 
-  const handleReveal = () => dispatch({ type: 'BEGIN_REVEAL' });
-
   return (
     <div className="min-h-screen flex flex-col p-5">
       <GameHeader />
-      {/* Header */}
-      <div className="text-center mb-6">
-        <p className="text-slate-400 text-sm uppercase tracking-widest font-medium">
+
+      {/* Level / Round badge */}
+      <div className="text-center mb-5">
+        <span className="glass border border-amber-500/30 text-amber-300 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
           {LEVEL_NAMES[config.level]} · Level {config.level}
-        </p>
-        <h2 className="text-2xl font-black text-white mt-1">
-          Round {currentRound} of {config.totalRounds}
+        </span>
+        <h2 className="text-2xl font-black text-white mt-3">
+          Round <span className="text-amber-400">{currentRound}</span>
+          <span className="text-white/30"> / {config.totalRounds}</span>
         </h2>
-        <p className="text-slate-500 text-xs mt-1">{config.seedsPerRound} seeds · {config.timeLimit}s timer</p>
+        <p className="text-white/30 text-xs mt-1">{config.seedsPerRound} seeds · {config.timeLimit}s timer</p>
       </div>
 
       {/* Instruction banner */}
-      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-center mb-6">
-        <p className="text-amber-300 font-semibold text-sm">
-          Seeds are dealt! Hold your fist closed — don&apos;t peek.
-        </p>
-        <p className="text-amber-400/70 text-xs mt-1">
-          When everyone is ready, tap <strong>Reveal &amp; Start</strong> to begin the countdown.
+      <div className="glass border border-amber-500/20 rounded-2xl p-4 text-center mb-5"
+        style={{ background: 'rgba(245,158,11,0.06)' }}>
+        <p className="text-2xl mb-1">✊</p>
+        <p className="text-amber-300 font-bold text-sm">Seeds are dealt! Keep your fist closed.</p>
+        <p className="text-white/40 text-xs mt-1">
+          Tap <strong className="text-amber-400">Reveal &amp; Start</strong> when everyone is ready.
         </p>
       </div>
 
-      {/* Players with hidden seeds */}
-      <div className="flex-1 space-y-4 overflow-y-auto">
-        {players.map(player => {
+      {/* Players */}
+      <div className="flex-1 space-y-3 overflow-y-auto">
+        {players.map((player, pi) => {
           const seeds = roundSeeds[player.id] ?? [];
+          const initials = player.name.slice(0, 2).toUpperCase();
+          const colors = ['#7c3aed','#0891b2','#be185d','#065f46','#92400e'];
+          const avatarColor = colors[pi % colors.length];
+
           return (
-            <div key={player.id} className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4">
-              <p className="text-white font-bold text-sm mb-3">{player.name}</p>
-              <div className="flex flex-wrap gap-2">
-                {seeds.map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-14 min-w-[3.5rem] h-[4.5rem] rounded-2xl border-2 border-slate-600 bg-slate-900 flex items-center justify-center shadow-md"
-                  >
-                    <span className="text-slate-600 text-2xl font-bold">?</span>
-                  </div>
-                ))}
+            <div key={player.id}
+              className="glass rounded-2xl p-4 flex items-center gap-4"
+              style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+              {/* Avatar */}
+              <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white"
+                style={{ background: avatarColor, boxShadow: `0 0 16px ${avatarColor}55` }}>
+                {initials}
+              </div>
+              <div className="flex-1">
+                <p className="text-white font-bold text-sm mb-2">{player.name}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {seeds.map((_, i) => (
+                    <div key={i}
+                      className="rounded-xl flex items-center justify-center"
+                      style={{
+                        width: 44, height: 56,
+                        background: 'linear-gradient(145deg,#1e293b,#0f172a)',
+                        border: '2px solid rgba(255,255,255,0.08)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                      }}>
+                      <span style={{ fontSize: 18, color: 'rgba(255,255,255,0.20)', fontWeight: 900 }}>?</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Reveal button */}
-      <div className="mt-6 space-y-3">
+      {/* Reveal CTA */}
+      <div className="mt-5 space-y-2">
         <button
-          onClick={handleReveal}
-          className="w-full py-5 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-extrabold text-xl transition-all shadow-xl shadow-amber-500/30"
+          onClick={() => dispatch({ type: 'BEGIN_REVEAL' })}
+          className="btn-shimmer w-full py-5 rounded-2xl text-black font-black text-xl transition-all active:scale-95 shadow-2xl glow-amber"
         >
-          Reveal &amp; Start Timer ▶
+          ▶ Reveal &amp; Start Timer
         </button>
-        <p className="text-center text-slate-500 text-xs">All seeds will flip at once when you tap</p>
+        <p className="text-center text-white/25 text-xs">All seeds flip simultaneously</p>
       </div>
     </div>
   );

@@ -6,21 +6,21 @@ interface CountdownTimerProps {
 }
 
 export default function CountdownTimer({ seconds, totalSeconds }: CountdownTimerProps) {
-  const pct = (seconds / totalSeconds) * 100;
-  const isLow = seconds <= 10;
+  const pct  = Math.max(0, seconds / totalSeconds);
   const isCritical = seconds <= 5;
+  const isLow      = seconds <= 10;
 
-  const color = isCritical
-    ? 'text-red-400'
-    : isLow
-    ? 'text-amber-400'
-    : 'text-emerald-400';
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - pct);
 
-  const barColor = isCritical
-    ? 'bg-red-500'
+  const ringColor  = isCritical ? '#ef4444' : isLow ? '#f59e0b' : '#22c55e';
+  const textColor  = isCritical ? '#fca5a5' : isLow ? '#fcd34d' : '#86efac';
+  const glowColor  = isCritical
+    ? 'rgba(239,68,68,0.7)'
     : isLow
-    ? 'bg-amber-500'
-    : 'bg-emerald-500';
+    ? 'rgba(245,158,11,0.5)'
+    : 'rgba(34,197,94,0.4)';
 
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
@@ -29,17 +29,65 @@ export default function CountdownTimer({ seconds, totalSeconds }: CountdownTimer
     : `${secs}`;
 
   return (
-    <div className="flex flex-col items-center gap-2 w-full max-w-xs mx-auto">
-      <div className={`font-mono font-black text-5xl tabular-nums ${color} ${isCritical ? 'animate-pulse' : ''}`}>
-        {display}
+    <div className="flex flex-col items-center gap-1">
+      <div
+        className={isCritical ? 'animate-pulse-red rounded-full' : ''}
+        style={{ borderRadius: '50%' }}
+      >
+        <svg
+          viewBox="0 0 120 120"
+          width="130" height="130"
+          style={{ transform: 'rotate(-90deg)' }}
+        >
+          {/* Track */}
+          <circle cx="60" cy="60" r={radius}
+            fill="none"
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth="10"
+          />
+          {/* Glow ring (blurred duplicate) */}
+          <circle cx="60" cy="60" r={radius}
+            fill="none"
+            stroke={ringColor}
+            strokeWidth="10"
+            strokeOpacity="0.3"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            style={{ filter: `blur(4px)`, transition: 'stroke-dashoffset 1s linear, stroke 0.4s ease' }}
+          />
+          {/* Main ring */}
+          <circle cx="60" cy="60" r={radius}
+            fill="none"
+            stroke={ringColor}
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.4s ease' }}
+          />
+          {/* Center number */}
+          <text
+            x="60" y="66"
+            textAnchor="middle"
+            fontSize={display.length > 3 ? '24' : '32'}
+            fontWeight="900"
+            fontFamily="'Orbitron', monospace"
+            fill={textColor}
+            style={{
+              transform: 'rotate(90deg)',
+              transformOrigin: '60px 60px',
+              filter: `drop-shadow(0 0 8px ${glowColor})`,
+              transition: 'fill 0.4s ease',
+            }}
+          >
+            {display}
+          </text>
+        </svg>
       </div>
-      <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-1000 ${barColor}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <p className="text-slate-400 text-xs uppercase tracking-widest">seconds remaining</p>
+      <p className="text-white/30 text-[11px] font-semibold uppercase tracking-widest">
+        {isCritical ? '⚡ Hurry!' : isLow ? 'Almost out!' : 'seconds left'}
+      </p>
     </div>
   );
 }
