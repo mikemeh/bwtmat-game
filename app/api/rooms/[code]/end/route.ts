@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { calculateTotal } from '@/lib/seeds';
 import { DrawnSeed } from '@/lib/types';
 
@@ -8,7 +8,7 @@ type Params = { params: Promise<{ code: string }> };
 export async function POST(_req: NextRequest, { params }: Params) {
   const { code } = await params;
   try {
-    const snap = await adminDb.collection('rooms').doc(code).get();
+    const snap = await getAdminDb().collection('rooms').doc(code).get();
     const room = snap.data()!;
     const submissions = room.submissions ?? {};
     const correctSubs = Object.entries(submissions)
@@ -36,13 +36,10 @@ export async function POST(_req: NextRequest, { params }: Params) {
         thirdPlaces:  p.thirdPlaces  + (sub.position === 3 ? 1 : 0),
       };
     });
-    await adminDb.collection('rooms').doc(code).update({
+    await getAdminDb().collection('rooms').doc(code).update({
       status: 'round-results',
       players: updatedPlayers,
-      roundResults: [...(room.roundResults ?? []), {
-        round: room.currentRound, correctAnswers,
-        submissions: allSubs,
-      }],
+      roundResults: [...(room.roundResults ?? []), { round: room.currentRound, correctAnswers, submissions: allSubs }],
       submissions: allSubs.reduce((acc: any, s: any) => ({ ...acc, [s.playerId]: s }), {}),
     });
     return NextResponse.json({ ok: true });

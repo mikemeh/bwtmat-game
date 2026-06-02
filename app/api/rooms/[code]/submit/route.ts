@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { calculateTotal } from '@/lib/seeds';
 import { DrawnSeed } from '@/lib/types';
 
@@ -9,8 +9,9 @@ export async function POST(req: NextRequest, { params }: Params) {
   const { code } = await params;
   try {
     const { playerId, answer } = await req.json();
-    const ref = adminDb.collection('rooms').doc(code);
-    await adminDb.runTransaction(async tx => {
+    const db = getAdminDb();
+    const ref = db.collection('rooms').doc(code);
+    await db.runTransaction(async tx => {
       const snap = await tx.get(ref);
       const room = snap.data()!;
       if (room.submissions?.[playerId]?.isCorrect) return;

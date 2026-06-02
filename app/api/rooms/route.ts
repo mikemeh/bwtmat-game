@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+﻿import { NextRequest, NextResponse } from 'next/server';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { drawSeeds } from '@/lib/seeds';
 
 function generateCode(): string {
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     const { playerName, playerId } = await req.json();
     const code = generateCode();
-    await adminDb.collection('rooms').doc(code).set({
+    await getAdminDb().collection('rooms').doc(code).set({
       code,
       status: 'lobby',
       hostId: playerId,
@@ -37,3 +37,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
+

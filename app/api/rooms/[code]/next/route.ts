@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { drawSeeds } from '@/lib/seeds';
 
 type Params = { params: Promise<{ code: string }> };
@@ -7,16 +7,16 @@ type Params = { params: Promise<{ code: string }> };
 export async function POST(_req: NextRequest, { params }: Params) {
   const { code } = await params;
   try {
-    const snap = await adminDb.collection('rooms').doc(code).get();
+    const snap = await getAdminDb().collection('rooms').doc(code).get();
     const room = snap.data()!;
     const next = room.currentRound + 1;
     if (next > room.config.totalRounds) {
-      await adminDb.collection('rooms').doc(code).update({ status: 'final' });
+      await getAdminDb().collection('rooms').doc(code).update({ status: 'final' });
       return NextResponse.json({ ok: true });
     }
     const seeds: Record<string, unknown> = {};
     Object.keys(room.players).forEach(pid => { seeds[pid] = drawSeeds(room.config.seedsPerRound); });
-    await adminDb.collection('rooms').doc(code).update({
+    await getAdminDb().collection('rooms').doc(code).update({
       status: 'draw', currentRound: next, roundSeeds: seeds,
       submissions: {}, submissionCount: 0, roundStartedAt: null,
     });
