@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { doc, setDoc } from 'firebase/firestore';
-import { getServerDb } from '@/lib/firebase-server';
+import { fsSet } from '@/lib/firestore-rest';
 import { drawSeeds } from '@/lib/seeds';
 
 function generateCode(): string {
@@ -12,8 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     const { playerName, playerId } = await req.json();
     const code = generateCode();
-    const db = getServerDb();
-    await setDoc(doc(db, 'rooms', code), {
+    await fsSet('rooms', code, {
       code, status: 'lobby', hostId: playerId,
       config: { level: 1, seedsPerRound: 3, timeLimit: 60, totalRounds: 5 },
       currentRound: 1, roundStartedAt: null,
@@ -24,7 +22,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ code });
   } catch (e) {
-    console.error('createRoom error:', e);
+    console.error('createRoom:', e);
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
