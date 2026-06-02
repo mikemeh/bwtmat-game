@@ -12,5 +12,11 @@ const firebaseConfig = {
   appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+if (!firebaseConfig.projectId) {
+  console.error('[Firebase] Missing env vars — NEXT_PUBLIC_FIREBASE_PROJECT_ID is undefined');
+} else {
+  console.log('[Firebase] Initialized for project:', firebaseConfig.projectId);
+}
+
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const db = getFirestore(app);

@@ -15,15 +15,27 @@ export default function OnlinePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), ms)
+      ),
+    ]);
+  }
+
   async function handleCreate() {
     if (!name.trim()) return;
     setLoading(true);
     setError('');
     try {
-      const roomCode = await createRoom(name.trim());
+      const roomCode = await withTimeout(createRoom(name.trim()), 10000);
       router.push(`/online/${roomCode}`);
-    } catch {
-      setError('Failed to create room. Check your connection.');
+    } catch (e) {
+      const msg = e instanceof Error && e.message === 'timeout'
+        ? 'Connection timed out. If you have an ad blocker or VPN, try disabling it for this site.'
+        : 'Failed to create room. Check your internet connection.';
+      setError(msg);
       setLoading(false);
     }
   }
@@ -33,15 +45,18 @@ export default function OnlinePage() {
     setLoading(true);
     setError('');
     try {
-      const result = await joinRoom(code.trim(), name.trim());
+      const result = await withTimeout(joinRoom(code.trim(), name.trim()), 10000);
       if (!result.ok) {
         setError(result.error ?? 'Failed to join room.');
         setLoading(false);
         return;
       }
       router.push(`/online/${code.trim().toUpperCase()}`);
-    } catch {
-      setError('Failed to join room. Check your connection.');
+    } catch (e) {
+      const msg = e instanceof Error && e.message === 'timeout'
+        ? 'Connection timed out. If you have an ad blocker or VPN, try disabling it for this site.'
+        : 'Failed to join room. Check your internet connection.';
+      setError(msg);
       setLoading(false);
     }
   }
