@@ -1,5 +1,6 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { NextRequest, NextResponse } from 'next/server';
+import { doc, setDoc } from 'firebase/firestore';
+import { getServerDb } from '@/lib/firebase-server';
 import { drawSeeds } from '@/lib/seeds';
 
 function generateCode(): string {
@@ -11,25 +12,15 @@ export async function POST(req: NextRequest) {
   try {
     const { playerName, playerId } = await req.json();
     const code = generateCode();
-    await getAdminDb().collection('rooms').doc(code).set({
-      code,
-      status: 'lobby',
-      hostId: playerId,
+    const db = getServerDb();
+    await setDoc(doc(db, 'rooms', code), {
+      code, status: 'lobby', hostId: playerId,
       config: { level: 1, seedsPerRound: 3, timeLimit: 60, totalRounds: 5 },
-      currentRound: 1,
-      roundStartedAt: null,
+      currentRound: 1, roundStartedAt: null,
       players: {
-        [playerId]: {
-          id: playerId, name: playerName, isHost: true,
-          firstPlaces: 0, secondPlaces: 0, thirdPlaces: 0,
-          roundPositions: [], joinedAt: Date.now(),
-        },
+        [playerId]: { id: playerId, name: playerName, isHost: true, firstPlaces: 0, secondPlaces: 0, thirdPlaces: 0, roundPositions: [], joinedAt: Date.now() },
       },
-      roundSeeds: {},
-      submissions: {},
-      submissionCount: 0,
-      roundResults: [],
-      createdAt: Date.now(),
+      roundSeeds: {}, submissions: {}, submissionCount: 0, roundResults: [], createdAt: Date.now(),
     });
     return NextResponse.json({ code });
   } catch (e) {
@@ -37,4 +28,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
-

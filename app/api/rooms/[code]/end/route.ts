@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { getServerDb } from '@/lib/firebase-server';
 import { calculateTotal } from '@/lib/seeds';
 import { DrawnSeed } from '@/lib/types';
 
@@ -8,7 +9,8 @@ type Params = { params: Promise<{ code: string }> };
 export async function POST(_req: NextRequest, { params }: Params) {
   const { code } = await params;
   try {
-    const snap = await getAdminDb().collection('rooms').doc(code).get();
+    const db = getServerDb();
+    const snap = await getDoc(doc(db, 'rooms', code));
     const room = snap.data()!;
     const submissions = room.submissions ?? {};
     const correctSubs = Object.entries(submissions)
@@ -29,16 +31,14 @@ export async function POST(_req: NextRequest, { params }: Params) {
       const p = updatedPlayers[sub.playerId];
       if (!p) return;
       updatedPlayers[sub.playerId] = {
-        ...p,
-        roundPositions: [...p.roundPositions, sub.position],
-        firstPlaces:  p.firstPlaces  + (sub.position === 1 ? 1 : 0),
+        ...p, roundPositions: [...p.roundPositions, sub.position],
+        firstPlaces: p.firstPlaces + (sub.position === 1 ? 1 : 0),
         secondPlaces: p.secondPlaces + (sub.position === 2 ? 1 : 0),
-        thirdPlaces:  p.thirdPlaces  + (sub.position === 3 ? 1 : 0),
+        thirdPlaces: p.thirdPlaces + (sub.position === 3 ? 1 : 0),
       };
     });
-    await getAdminDb().collection('rooms').doc(code).update({
-      status: 'round-results',
-      players: updatedPlayers,
+    await updateDoc(doc(db, 'rooms', code), {
+      status: 'round-results', players: updatedPlayers,
       roundResults: [...(room.roundResults ?? []), { round: room.currentRound, correctAnswers, submissions: allSubs }],
       submissions: allSubs.reduce((acc: any, s: any) => ({ ...acc, [s.playerId]: s }), {}),
     });
