@@ -85,7 +85,14 @@ export async function createRoom(playerName: string): Promise<string> {
     roundResults: [],
     createdAt: Date.now(),
   };
-  await setDoc(doc(db, 'rooms', code), room);
+  console.log('[createRoom] Calling setDoc...');
+  try {
+    await setDoc(doc(db, 'rooms', code), room);
+    console.log('[createRoom] setDoc SUCCESS');
+  } catch (e) {
+    console.error('[createRoom] setDoc FAILED:', e);
+    throw e;
+  }
   return code;
 }
 
