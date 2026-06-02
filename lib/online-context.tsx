@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { OnlineRoom, OnlinePlayer, subscribeToRoom, getOrCreatePlayerId } from './room-service';
+import { OnlineRoom, OnlinePlayer, getOrCreatePlayerId } from './room-service';
 
 interface OnlineCtx {
   room: OnlineRoom | null;
@@ -17,8 +17,17 @@ export function OnlineProvider({ code, children }: { code: string; children: Rea
   const myId = getOrCreatePlayerId();
 
   useEffect(() => {
-    const unsub = subscribeToRoom(code, setRoom);
-    return unsub;
+    let active = true;
+    async function poll() {
+      try {
+        const res = await fetch(`/api/rooms/${code}`);
+        const data = await res.json();
+        if (active) setRoom(data);
+      } catch {}
+    }
+    poll();
+    const id = setInterval(poll, 2000);
+    return () => { active = false; clearInterval(id); };
   }, [code]);
 
   const me = room?.players[myId] ?? null;
