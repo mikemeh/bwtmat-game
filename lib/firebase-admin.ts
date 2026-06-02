@@ -16,5 +16,6 @@ export function getAdminDb(): Firestore {
         })
       : getApps()[0];
   _db = getFirestore(app);
+  _db.settings({ preferRest: true });
   return _db;
 }
