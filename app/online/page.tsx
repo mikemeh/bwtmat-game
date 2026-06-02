@@ -33,8 +33,8 @@ export default function OnlinePage() {
       router.push(`/online/${roomCode}`);
     } catch (e) {
       const msg = e instanceof Error && e.message === 'timeout'
-        ? 'Connection timed out. If you have an ad blocker or VPN, try disabling it for this site.'
-        : 'Failed to create room. Check your internet connection.';
+        ? 'Connection timed out.'
+        : `Error: ${e instanceof Error ? e.message : String(e)}`;
       setError(msg);
       setLoading(false);
     }
