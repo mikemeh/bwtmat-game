@@ -29,7 +29,7 @@ export default function OnlinePage() {
     setLoading(true);
     setError('');
     try {
-      const roomCode = await withTimeout(createRoom(name.trim()), 10000);
+      const roomCode = await withTimeout(createRoom(name.trim()), 60000);
       router.push(`/online/${roomCode}`);
     } catch (e) {
       const msg = e instanceof Error && e.message === 'timeout'
@@ -45,7 +45,7 @@ export default function OnlinePage() {
     setLoading(true);
     setError('');
     try {
-      const result = await withTimeout(joinRoom(code.trim(), name.trim()), 10000);
+      const result = await withTimeout(joinRoom(code.trim(), name.trim()), 60000);
       if (!result.ok) {
         setError(result.error ?? 'Failed to join room.');
         setLoading(false);
